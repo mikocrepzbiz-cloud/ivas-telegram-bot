@@ -24,10 +24,14 @@ class IvasSession(_CurlSession):
             kwargs['allow_redirects'] = follow_redirects
         return super().post(*args, **kwargs)
 
-with open("flag.json", "r", encoding="utf-8") as f:
-    FLAGS = json.load(f)
+# ================= LOAD FLAGS =================
+if os.path.exists("flag.json"):
+    with open("flag.json", "r", encoding="utf-8") as f:
+        FLAGS = json.load(f)
+else:
+    FLAGS = {}
 
-# ================= CONFIG =================
+# ================= CONFIG (RAILWAY ENV SUPPORT) =================
 BASE = "https://ivas.tempnum.qzz.io"
 LOGIN_URL = f"{BASE}/login"
 GET_RANGE_URL = f"{BASE}/portal/sms/received/getsms"
@@ -36,27 +40,38 @@ GET_SMS_URL = f"{BASE}/portal/sms/received/getsms/number/sms"
 TEST_SMS_URL = f"{BASE}/portal/sms/test/sms"
 RETURN_ALL_URL = f"{BASE}/portal/numbers/return/allnumber/bluck"
 
-BOT_TOKEN = "8907779837:AAEKbzJw5Hzv0pEOWGdvI24qJCrSQJ29SIU"
-CHAT_ID = "-1003964495316"
-OWNER_ID = 8601481340
+# AMBIL DARI ENVIRONMENT VARIABLES (RAILWAY)
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8907779837:AAEKbzJw5Hzv0pEOWGdvI24qJCrSQJ29SIU")
+CHAT_ID = os.environ.get("CHAT_ID", "-1003964495316")
+OWNER_ID = int(os.environ.get("OWNER_ID", "8601481340"))
 
 ADDNUM_API_URL = "https://ws.websocket.web.id/admin/addnumber"
-ADDNUM_API_KEY = "112231"
+ADDNUM_API_KEY = os.environ.get("ADDNUM_API_KEY", "112231")
 
+# BUAT FOLDER FILE
 os.makedirs("file", exist_ok=True)
 
-ACCOUNTS = [
-    {
-        "USERNAME": "mikigaming999@gmail.com",
-        "PASSWORD": "@abah123#",
-        "COOKIES": {
-            "_fbp": "fb.1.1778737138333.962595303929692626",
-            "XSRF-TOKEN": "eyJpdiI6IjhjNzcycjFwWlVQcFJaMElDMDJhVmc9PSIsInZhbHVlIjoiRkhSRTdJRjFKOXZYSkdBYXMvMWZ2d1pGeEdraEhrVGlHRlMwTVNvSVRpR0NqUHI5NXBBcEJGV29oOXl6aEl5emNVUzNGS2tiYk5zc2ViNUpDWTNPZm9ZalliWFIvcWwxM3ZnMC9VMVk4UW5sUW15ZkQvR21kMWR2RVoveGFTRmkiLCJtYWMiOiJjZGYyZTFkNWEwY2FiN2ViNDNlY2JkZWU4M2YxZDA0NjY3NThjNTY4NDUxYzY1ZmFhZDFjMTY3YmY3MTg0M2ExIiwidGFnIjoiIn0%3D",
-            "ivas_sms_session": "eyJpdiI6IktxMThKL0NOaTdEdk5BSngxK2s0QVE9PSIsInZhbHVlIjoiK25jczRyeXE5L051R2tPSi9kMEdiMHRFZllSMzlMWVR3WDgvM2lJdjUvOFM3bWpSZHp5WTdETHUxa21oK2c3d29JYlBUQTdxSzZQQ1VpMDB0R25nV0dNS3FCdncvY0xSajJFQ0NRbjBPQ0MrOVN2bFRGSDluOEJGOFZIQ2M4SDIiLCJtYWMiOiI5YTBlM2M0NGY5NTAzMjFmOWFhZDdhZjg0MmU1NTliNzQxNjFjYTlhNmVhYmIzNmY1YWFjZDU3YjNjYTczNmJlIiwidGFnIjoiIn0%3D"
+# ================= AKUN (BISA DARI ENV JUGA) =================
+# AMBIL AKUN DARI ENVIRONMENT (FORMAT JSON)
+ACCOUNTS_JSON = os.environ.get("ACCOUNTS_JSON", "")
+if ACCOUNTS_JSON:
+    try:
+        ACCOUNTS = json.loads(ACCOUNTS_JSON)
+    except:
+        ACCOUNTS = []
+else:
+    # FALLBACK KE AKUN DEFAULT
+    ACCOUNTS = [
+        {
+            "USERNAME": "mikigaming999@gmail.com",
+            "PASSWORD": "@abah123#",
+            "COOKIES": {
+                "_fbp": "fb.1.1778737138333.962595303929692626",
+                "XSRF-TOKEN": "eyJpdiI6IjhjNzcycjFwWlVQcFJaMElDMDJhVmc9PSIsInZhbHVlIjoiRkhSRTdJRjFKOXZYSkdBYXMvMWZ2d1pGeEdraEhrVGlHRlMwTVNvSVRpR0NqUHI5NXBBcEJGV29oOXl6aEl5emNVUzNGS2tiYk5zc2ViNUpDWTNPZm9ZalliWFIvcWwxM3ZnMC9VMVk4UW5sUW15ZkQvR21kMWR2RVoveGFTRmkiLCJtYWMiOiJjZGYyZTFkNWEwY2FiN2ViNDNlY2JkZWU4M2YxZDA0NjY3NThjNTY4NDUxYzY1ZmFhZDFjMTY3YmY3MTg0M2ExIiwidGFnIjoiIn0%3D",
+                "ivas_sms_session": "eyJpdiI6IktxMThKL0NOaTdEdk5BSngxK2s0QVE9PSIsInZhbHVlIjoiK25jczRyeXE5L051R2tPSi9kMEdiMHRFZllSMzlMWVR3WDgvM2lJdjUvOFM3bWpSZHp5WTdETHUxa21oK2c3d29JYlBUQTdxSzZQQ1VpMDB0R25nV0dNS3FCdncvY0xSajJFQ0NRbjBPQ0MrOVN2bFRGSDluOEJGOFZIQ2M4SDIiLCJtYWMiOiI5YTBlM2M0NGY5NTAzMjFmOWFhZDdhZjg0MmU1NTliNzQxNjFjYTlhNmVhYmIzNmY1YWFjZDU3YjNjYTczNmJlIiwidGFnIjoiIn0%3D"
+            }
         }
-    }
-       
-]
+    ]
 
 SERVICE_SHORT = {
     "WHATSAPP": "WS", "TELEGRAM": "TG", "GOOGLE": "GO",
@@ -85,7 +100,6 @@ last_update_id = 0
 sms_stats = {"total_sms": 0, "total_otp": 0, "total_number": set()}
 
 tg_session = httpx.Client(follow_redirects=True, timeout=15)
-                                                            
 tg_bot_sender = httpx.Client(follow_redirects=True, timeout=15)
 
 # ================= TELEGRAM =================
@@ -106,7 +120,6 @@ def tg_send(msg, otp):
             ]
         ]
     }
-                                                                                 
     try:
         res = tg_bot_sender.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
@@ -177,6 +190,28 @@ def mask_email(email):
 
 def get_flag(country):
     return FLAGS.get(country.upper(), "🏴‍☠️")
+
+# ================= KEEP ALIVE UNTUK RAILWAY =================
+def keep_alive():
+    """Menjaga bot tetap hidup di Railway"""
+    try:
+        from flask import Flask
+        from threading import Thread
+        
+        app = Flask('')
+        
+        @app.route('/')
+        def home():
+            return "Bot is alive!"
+        
+        def run():
+            app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+        
+        t = Thread(target=run)
+        t.start()
+        print("[✓] Keep Alive Server Started")
+    except ImportError:
+        print("[!] Flask tidak terinstall, skip keep alive")
 
 # ================= /start =================
 def handle_start(chat_id):
@@ -279,17 +314,14 @@ def addnum_command(text, chat_id, msg_id):
 def return_all_number(acc):
     try:
         session = acc["session"]
-
         token, err = get_fresh_csrf(session)
         if err or not token:
-                                                              
             token = acc.get("csrf_token", "")
         if not token:
             return False, "CSRF token tidak ditemukan"
-
         r = session.post(
             RETURN_ALL_URL,
-            data={"_token": token},                                         
+            data={"_token": token},
             headers={
                 "X-Requested-With": "XMLHttpRequest",
                 "Referer": f"{BASE}/portal/numbers",
@@ -309,73 +341,54 @@ def delnumall_command(chat_id):
         data={"chat_id": chat_id, "text": "⚠️ Pilih akun untuk <b>return semua nomor</b>:", "parse_mode": "HTML", "reply_markup": json.dumps(keyboard)}
     )
 
-# ================= 🔥 FIX: AMBIL FILE =================
+# ================= AMBIL FILE =================
 def get_fresh_csrf(session):
     """Ambil CSRF token fresh dari halaman portal/numbers"""
     try:
-                                                                          
         r = session.get(f"{BASE}/portal/numbers", follow_redirects=False, timeout=15)
-
         if r.status_code in (301, 302):
             loc = r.headers.get("location", "")
             if "login" in loc.lower():
                 return None, "session_expired"
-
         if r.status_code in (301, 302):
             r = session.get(f"{BASE}/portal/numbers", follow_redirects=True, timeout=15)
-
         soup = BeautifulSoup(r.text, "html.parser")
-
         token_input = soup.find("input", {"name": "_token"})
         if token_input and token_input.get("value"):
             return token_input["value"], None
-
         meta = soup.find("meta", {"name": "csrf-token"})
         if meta and meta.get("content"):
             return meta["content"], None
-
         m = re.search(r'name=["\']_token["\']\s+value=["\']([^"\']+)["\']', r.text)
         if m:
             return m.group(1), None
-
         return None, "token_not_found"
     except Exception as e:
         return None, str(e)
 
 def export_numbers_ivas(chat_id, email):
-                                                            
     acc_target = None
     for a in ACCOUNTS:
         if a["USERNAME"] == email and a.get("session"):
             acc_target = a
             break
-
     if not acc_target:
         send_msg(chat_id, "❌ Akun tidak ditemukan"); return
-
     session = acc_target["session"]
     send_msg(chat_id, f"⏳ Mengambil file export untuk <code>{mask_email(email)}</code>...")
-
     try:
-                                                                     
         token, err = get_fresh_csrf(session)
-
         if err == "session_expired":
-                                                               
             print(f"[~] Session expired untuk export, relogin: {email}")
             login(acc_target)
             token, err = get_fresh_csrf(session)
             if err:
                 send_msg(chat_id, f"❌ Session expired & relogin gagal\nError: {err}"); return
-
         if not token:
-                                                                          
             token = acc_target.get("csrf_token", "")
             if not token:
                 send_msg(chat_id, "❌ CSRF token tidak ditemukan"); return
-
         export_url = f"{BASE}/portal/numbers/export"
-
         for method in ["POST", "GET"]:
             if method == "POST":
                 r = session.post(
@@ -386,7 +399,7 @@ def export_numbers_ivas(chat_id, email):
                         "Referer": f"{BASE}/portal/numbers",
                         "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*"
                     },
-                    follow_redirects=False,                                            
+                    follow_redirects=False,
                     timeout=30
                 )
             else:
@@ -399,14 +412,11 @@ def export_numbers_ivas(chat_id, email):
                     follow_redirects=False,
                     timeout=30
                 )
-
             if r.status_code in (301, 302):
                 loc = r.headers.get("location", "")
                 if "login" in loc.lower():
                     send_msg(chat_id, "❌ Session expired saat export\nCoba update cookie akun"); return
-                                                 
                 r = session.get(r.headers["location"], follow_redirects=True, timeout=30)
-
             content_type = r.headers.get("Content-Type", "")
             is_excel = (
                 "spreadsheet" in content_type or
@@ -414,18 +424,14 @@ def export_numbers_ivas(chat_id, email):
                 "excel" in content_type or
                 (r.status_code == 200 and len(r.content) > 500 and not r.text[:20].strip().startswith("<"))
             )
-
             if r.status_code == 200 and is_excel:
-                break                       
+                break
         else:
             send_msg(chat_id, f"❌ Export gagal (HTTP {r.status_code})\nContent-Type: {content_type[:60]}"); return
-
         filename = f"ivas_export_{int(time.time())}.xlsx"
         filepath = f"file/{filename}"
-
         with open(filepath, "wb") as f:
             f.write(r.content)
-
         with open(filepath, "rb") as f:
             tg_session.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument",
@@ -437,7 +443,6 @@ def export_numbers_ivas(chat_id, email):
                 files={"document": (filename, f)}
             )
         os.remove(filepath)
-
     except Exception as e:
         send_msg(chat_id, f"❌ Error export: {e}")
 
@@ -450,7 +455,7 @@ def ambilfile_command(chat_id):
         data={"chat_id": chat_id, "text": "📂 Pilih akun untuk <b>export nomor</b>:", "parse_mode": "HTML", "reply_markup": json.dumps(keyboard)}
     )
 
-# ================= CEK RANGE (AJAX + XSRF REFRESH) =================
+# ================= CEK RANGE =================
 def cek_range_command(chat_id, text):
     try:
         parts = text.split()
@@ -466,39 +471,29 @@ def cek_range_command(chat_id, text):
                 search_query = " ".join(parts[2:]).strip().upper()
             else:
                 search_query = " ".join(parts[1:]).strip().upper()
-
         acc_target = next((a for a in ACCOUNTS if a.get("session") and a.get("csrf_token")), None)
         if not acc_target:
             send_msg(chat_id, "❌ Tidak ada akun aktif"); return
-
         all_results_raw = []
         unique_ranges_count = set()
         last_err = ""
-
         for acc_try in ACCOUNTS:
             if not acc_try.get("session") or not acc_try.get("csrf_token"):
                 continue
-
             session = acc_try["session"]
             tmp_results = []
             tmp_unique = set()
             success = False
-
             try:
                 for app_name in target_apps:
-                                                                                           
                     session.get(
                         TEST_SMS_URL,
                         params={"app": app_name},
-                        headers={
-                            "Referer": f"{BASE}/portal",
-                        },
+                        headers={"Referer": f"{BASE}/portal"},
                         follow_redirects=True,
                         timeout=15
                     )
-
                     xsrf = get_xsrf(session)
-
                     now_ms = int(time.time() * 1000)
                     resp = session.get(
                         TEST_SMS_URL,
@@ -519,9 +514,7 @@ def cek_range_command(chat_id, text):
                         follow_redirects=True,
                         timeout=30
                     )
-
                     if resp.status_code == 401:
-                                                         
                         print(f"[~] 401 cekrange, relogin: {acc_try['USERNAME']}")
                         login(acc_try)
                         session.get(TEST_SMS_URL, params={"app": app_name}, follow_redirects=True, timeout=10)
@@ -539,22 +532,17 @@ def cek_range_command(chat_id, text):
                             follow_redirects=True,
                             timeout=30
                         )
-
                     if resp.status_code != 200:
                         last_err = f"HTTP {resp.status_code} ({acc_try['USERNAME']})"; continue
-
                     try:
                         resp_json = resp.json()
                     except Exception:
                         last_err = f"Response bukan JSON ({acc_try['USERNAME']})"; continue
-
                     items = resp_json.get("data", [])
                     if not items:
                         last_err = f"Data kosong ({acc_try['USERNAME']})"; continue
-
                     success = True
                     tag_service = "#WS" if app_name == "WhatsApp" else "#TG"
-
                     for item in items:
                         range_raw = item.get("range", "") if isinstance(item, dict) else ""
                         if not range_raw: continue
@@ -564,7 +552,6 @@ def cek_range_command(chat_id, text):
                         code = m.group(2) if m else "N/A"
                         if search_query and search_query not in country: continue
                         if code != "N/A": tmp_unique.add(f"{tag_service}_{code}")
-
                         all_text = BeautifulSoup(
                             " ".join([str(v) for v in (item.values() if isinstance(item, dict) else item)]),
                             "html.parser"
@@ -585,25 +572,20 @@ def cek_range_command(chat_id, text):
                                     diff = max(0, int((datetime.now() - dt).total_seconds()))
                                 except: diff = 0
                         tmp_results.append({"diff": diff, "tag": tag_service, "country": country, "code": code})
-
             except Exception as e:
                 last_err = f"Error {acc_try['USERNAME']}: {str(e)[:80]}"
                 continue
-
             if success and tmp_results:
                 all_results_raw = tmp_results
                 unique_ranges_count = tmp_unique
                 break
-
         if not all_results_raw:
             send_msg(chat_id, f"❌ Data tidak ditemukan\n<i>{last_err}</i>"); return
-
         unique_map = {}
         for item in all_results_raw:
             key = (item["tag"], item["country"], item["code"])
             if key not in unique_map or item["diff"] < unique_map[key]["diff"]:
                 unique_map[key] = item
-
         final = sorted(unique_map.values(), key=lambda x: x["diff"])
         lines = []
         for item in final:
@@ -612,12 +594,10 @@ def cek_range_command(chat_id, text):
                   else f"{d//60} menit {d%60} detik" if d < 3600
                   else f"{d//3600} jam {(d%3600)//60} menit")
             lines.append(f"{item['tag']} {item['country']}  {item['code']}  {wt}")
-
         msg = f"📱 RANGE TERBARU ({len(unique_ranges_count)} unik):\n\n"
         msg += "\n".join(lines[:40])
         if len(lines) > 40: msg += f"\n\n... dan {len(lines)-40} lainnya"
         send_msg(chat_id, msg)
-
     except Exception as e:
         send_msg(chat_id, f"❌ Error cek range: {e}")
 
@@ -625,23 +605,18 @@ def cek_range_command(chat_id, text):
 def extract_csrf_token(html_text):
     """Coba berbagai cara extract CSRF token dari HTML"""
     soup = BeautifulSoup(html_text, "html.parser")
-
     token_input = soup.find("input", {"name": "_token"})
     if token_input and token_input.get("value"):
         return token_input["value"]
-
     meta = soup.find("meta", {"name": "csrf-token"})
     if meta and meta.get("content"):
         return meta["content"]
-
     m = re.search(r'name=["\']_token["\']\s+value=["\']([^"\']+)["\']', html_text)
     if m:
         return m.group(1)
-
     m = re.search(r'value=["\']([^"\']{20,})["\']\s+name=["\']_token["\']', html_text)
     if m:
         return m.group(1)
-
     return None
 
 def is_cloudflare_challenge(html_text):
@@ -655,10 +630,6 @@ def is_cloudflare_challenge(html_text):
 
 def login(acc, max_retry=3):
     session = acc["session"]
-
-    # ============================================================
-                                                                  
-    # ============================================================
     print(f"[~] Coba cookie-login: {acc['USERNAME']}")
     try:
         r = session.get(
@@ -667,7 +638,6 @@ def login(acc, max_retry=3):
             timeout=20,
             follow_redirects=False
         )
-
         if r.status_code == 200:
             csrf = extract_csrf_token(r.text)
             if csrf:
@@ -684,7 +654,6 @@ def login(acc, max_retry=3):
                 acc["csrf_token"] = csrf
                 print(f"[✓] Cookie-login berhasil (via portal/numbers): {acc['USERNAME']}")
                 return True
-
         if r.status_code in (301, 302):
             loc = r.headers.get("location", "")
             if "login" not in loc.lower():
@@ -696,33 +665,22 @@ def login(acc, max_retry=3):
                     return True
             else:
                 print(f"[~] Cookies expired, coba form login...")
-
     except Exception as e:
         print(f"[~] Cookie-login error: {e}, coba form login...")
-
-    # ============================================================
-                                                                        
-    # ============================================================
     for attempt in range(1, max_retry + 1):
         try:
             print(f"[~] Form login attempt {attempt}/{max_retry}: {acc['USERNAME']}")
-
-            r = session.get(LOGIN_URL, headers={
-                "Referer": BASE + "/",
-            }, timeout=20)
-
+            r = session.get(LOGIN_URL, headers={"Referer": BASE + "/"}, timeout=20)
             if is_cloudflare_challenge(r.text):
                 print(f"[!] Cloudflare challenge (attempt {attempt}), tunggu 5s...")
                 time.sleep(5)
                 continue
-
             if r.status_code == 403:
                 print(f"[X] 403 Forbidden (attempt {attempt})")
                 print(f"    Server: {r.headers.get('Server', 'unknown')}")
                 if attempt < max_retry:
                     time.sleep(3)
                 continue
-
             csrf_token = extract_csrf_token(r.text)
             if not csrf_token:
                 print(f"[X] CSRF token tidak ditemukan (attempt {attempt})")
@@ -738,10 +696,8 @@ def login(acc, max_retry=3):
                 if attempt < max_retry:
                     time.sleep(3)
                 continue
-
             acc["csrf_token"] = csrf_token
             print(f"[✓] CSRF token ditemukan")
-
             r2 = session.post(LOGIN_URL, data={
                 "_token": csrf_token,
                 "email": acc["USERNAME"],
@@ -750,7 +706,6 @@ def login(acc, max_retry=3):
                 "Referer": LOGIN_URL,
                 "Origin": BASE,
             }, timeout=20)
-
             if r2.status_code in (200, 302) and "login" not in str(r2.url).split("?")[0].rstrip("/").split("/")[-1]:
                 print(f"[✓] Login Berhasil: {acc['USERNAME']}")
                 new_token = extract_csrf_token(r2.text)
@@ -761,12 +716,10 @@ def login(acc, max_retry=3):
                 print(f"[X] Login gagal, URL: {r2.url}")
                 if attempt < max_retry:
                     time.sleep(3)
-
         except Exception as e:
             print(f"[X] Error login (attempt {attempt}): {e}")
             if attempt < max_retry:
                 time.sleep(3)
-
     print(f"[X] Login gagal setelah {max_retry} percobaan: {acc['USERNAME']}")
     return False
 
@@ -825,7 +778,7 @@ def wait_network(label=""):
             return
         except Exception:
             retry += 1
-            jeda = min(10 * retry, 60)                       
+            jeda = min(10 * retry, 60)
             print(f"[~] Jaringan down{' (' + label + ')' if label else ''}, retry {retry} dalam {jeda}s...")
             time.sleep(jeda)
 
@@ -841,15 +794,12 @@ def listen_command():
             data = r.json()
             for upd in data.get("result", []):
                 last_update_id = upd["update_id"]
-
-                # ===== CALLBACK =====
                 if "callback_query" in upd:
                     try:
                         cb = upd["callback_query"]
                         data_cb = cb.get("data", "")
                         chat_id = cb["message"]["chat"]["id"]
                         msg_id  = cb["message"]["message_id"]
-
                         if data_cb.startswith("ADDNUM"):
                             _, target, email = data_cb.split("|", 2)
                             delete_msg(chat_id, msg_id)
@@ -858,7 +808,6 @@ def listen_command():
                                 send_msg(chat_id, f"✅ ADD NUMBER BERHASIL\n\n📌 Range: {result}\n📧 {mask_email(email)}")
                             else:
                                 send_msg(chat_id, f"❌ GAGAL: {result}")
-
                         elif data_cb.startswith("DELNUMALL"):
                             _, email = data_cb.split("|", 1)
                             delete_msg(chat_id, msg_id)
@@ -867,24 +816,19 @@ def listen_command():
                                 send_msg(chat_id, "❌ Akun tidak ditemukan"); continue
                             ok, res = return_all_number(acc_target)
                             send_msg(chat_id, f"✅ DELETE ALL BERHASIL\n📧 {mask_email(email)}" if ok else f"❌ GAGAL: {res[:100]}")
-
                         elif data_cb.startswith("EXPORT"):
                             _, email = data_cb.split("|", 1)
                             delete_msg(chat_id, msg_id)
                             threading.Thread(target=export_numbers_ivas, args=(chat_id, email), daemon=True).start()
-
                     except Exception as e:
                         print(f"Callback error: {e}")
                     continue
-
                 if "message" not in upd:
                     continue
-
                 msg     = upd["message"]
                 text    = msg.get("text", "") or ""
                 chat_id = msg["chat"]["id"]
                 msg_id  = msg["message_id"]
-
                 if text.strip().startswith("/start"):
                     handle_start(chat_id)
                 elif text.startswith("/cekivas"):
@@ -899,10 +843,8 @@ def listen_command():
                     delnumall_command(chat_id)
                 elif text.startswith("/ambilfile"):
                     ambilfile_command(chat_id)
-
         except Exception as e:
             if is_network_error(e):
-                                                                        
                 print(f"[LISTENER] Jaringan down, menunggu...")
                 wait_network("listener")
             else:
@@ -911,27 +853,20 @@ def listen_command():
 
 # ================= BOT LOOP =================
 def run_bot():
-                      
     for acc in ACCOUNTS:
-                                                              
         acc["session"] = IvasSession(timeout=15)
         acc["session"].cookies.update(acc["COOKIES"])
         acc["csrf_token"] = ""
         login(acc)
-
     print("[✓] Bot Multi-Akun Berjalan..")
-
     last_relogin = {acc["USERNAME"]: 0 for acc in ACCOUNTS}
-
     while True:
         network_ok = True
         for acc in ACCOUNTS:
             try:
                 if not acc.get("csrf_token"):
                     continue
-
                 ranges = get_ranges(acc)
-
                 if not ranges:
                     now = time.time()
                     uname = acc["USERNAME"]
@@ -940,31 +875,25 @@ def run_bot():
                         login(acc)
                         last_relogin[uname] = now
                     continue
-
                 for rng in ranges:
                     country = clean_country(rng)
                     flag = get_flag(country)
-
                     for num in get_numbers(acc, rng):
-                                                                              
                         smss = get_sms(acc, rng, num)
                         for sms in smss:
                             if "$" in sms and len(sms) < 15: continue
                             otp = extract_otp(sms)
                             if not otp: continue
                             unique_id = f"{num}-{otp}"
-
                             with sent_cache_lock:
                                 if unique_id in sent_cache:
                                     continue
                                 sent_cache.add(unique_id)
-
                             service = extract_service_short(sms)
                             msg = (
                                 f"<b>{flag} {country} | {service} | {format_phone_number(num)}</b>\n"
                                 f"<i>Penerima: {mask_email(acc['USERNAME'])}</i>\n"
                             )
-                                                                               
                             threading.Thread(
                                 target=tg_send, args=(msg, otp), daemon=True
                             ).start()
@@ -972,28 +901,29 @@ def run_bot():
                             sms_stats["total_otp"] += 1
                             sms_stats["total_number"].add(num)
                             print(f"[{acc['USERNAME']}] [OTP] {otp} → {num}")
-
             except Exception as e:
                 if is_network_error(e):
-                                                                           
                     if network_ok:
                         print(f"[BOT] Jaringan down, menunggu pulih...")
                         network_ok = False
                     wait_network("bot")
                     network_ok = True
-                    break                                                            
+                    break
                 else:
                     print(f"[ERROR {acc['USERNAME']}] {e}")
                     time.sleep(2)
-
         time.sleep(2)
 
 # ================= START =================
-                                                                   
-bot_thread = threading.Thread(target=run_bot, daemon=True)
-bot_thread.start()
-
-try:
-    listen_command()
-except KeyboardInterrupt:
-    print("\n[!] Bot dihentikan.")
+if __name__ == "__main__":
+    # Jalankan keep alive untuk Railway
+    keep_alive()
+    
+    # Jalankan bot
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    
+    try:
+        listen_command()
+    except KeyboardInterrupt:
+        print("\n[!] Bot dihentikan.")
